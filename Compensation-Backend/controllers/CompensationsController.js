@@ -59,5 +59,79 @@ module.exports =
         con.end();
 
         return res.status(200).json({compensation_required: needCompensation});
+    },
+
+    compensateSlots: async (req, res, next) => 
+    {
+        var staffMemberID           = req.body.staffMemberID;
+        // Meetings Should be of the same day
+        var meetingsToBeCompensated = req.body.meetingsIDs;
+        // Prefered Slots should be of the same week
+        var preferredSlots          = req.body.preferredSlots;
+        // UnPreferred Slots should be of the same week
+        var unPreferredSlots        = req.body.unPreferredSlots;
+        // Holiday Date
+        var holidayDate             = req.body.holidayDate;
+        // Holiday Day              
+        var holidayDay              = req.body.holidayDay;
+
+        var daysInWeek = helpers.getWeekDates(holidayDate);
+
+        // Connect to DB
+        var con = mysql.createConnection({
+            host: "localhost",
+            user: "root",
+            password: "password",
+            database: "GUCDataBase"
+          });
+          
+        con.connect(function(err) {
+            if (err) throw err;
+            console.log("Connected To Database!");
+        });
+
+        // node native promisify
+        const query = util.promisify(con.query).bind(con);
+
+        var availableDates = [];
+        for(var i = 0; i < daysInWeek.length; i++)
+        {
+            var findDayIsAHoliday = "SELECT * FROM Calendar_Holidays WHERE date = '" + daysInWeek[i] + "' AND event_name = '" 
+                                + constants.CALENDAR_EVENTS.HOLIDAY + "'";
+            var dayIsHoliday = await query(findDayIsAHoliday);
+            if(dayIsHoliday.length == 0)
+                availableDates.push(daysInWeek[i]);
+        }
+
+        // solve_all_slots(Slots , Days_Off, FreeSlots , Preferable , NonPreferable).
+
+        // GET STUDENTS DAYS OFF
+        var studentsByMeetingDaysOff = [];
+        // GET STUDENTS FREE SLOTS
+        var studentsByMeetingFreeSlots = [];
+        for(var i = 0; i < meetingsToBeCompensated.length; i++)
+        {
+            var meetingDaysOff = [];
+
+            var getMeetingQuery = "SELECT * FROM Course_Meetings WHERE id = " + meetingsToBeCompensated[i];
+            var courseMeeting = await query(getMeetingQuery);
+
+            var daysOffQuery = null;
+            if(courseMeeting.tutorial_group_id == null)
+                daysOffQuery = "SELECT DISTINCT day FROM Tutorial_Groups_Holidays WHERE lecture_group_id = " + courseMeeting.lecture_group_id;
+            else
+                daysOffQuery = "SELECT DISTINCT day FROM Tutorial_Groups_Holidays WHERE tutorial_group_id = " + courseMeeting.tutorial_group_id;
+
+            var daysOff = await query(daysOffQuery);
+            for(var j = 0; j < daysOff.length; j++)
+                if(daysOff[i].day != holidayDay)
+                    meetingDaysOff.push(helpers.getDayIdx(daysOff[j].day));
+
+            // ADD FREE SLOTS HERE
+
+            studentsByMeetingDaysOff.push(meetingDaysOff);
+        }
+
+
     }
 }
