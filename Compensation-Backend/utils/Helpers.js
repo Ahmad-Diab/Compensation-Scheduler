@@ -38,5 +38,25 @@ module.exports =
         if(day == 'Tuesday') return 4;
         if(day == 'Wednesday') return 5;
         return 6;
+    },
+
+    getNumberOfPreviousSlots: (day) =>
+    {
+        if(day == 'Saturday') return 0;
+        if(day == 'Sunday') return 5;
+        if(day == 'Monday') return 10;
+        if(day == 'Tuesday') return 15;
+        if(day == 'Wednesday') return 20;
+        return 25;
+    },
+
+    fromIdxToDay: (idx) =>
+    {
+        if(idx == 1) return 'Saturday';
+        if(idx == 2) return 'Sunday';
+        if(idx == 3) return 'Monday';
+        if(idx == 4) return 'Tuesday';
+        if(idx == 5) return 'Wednesday';
+        return 'Thursday';
     }
 }
