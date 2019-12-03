@@ -1,4 +1,3 @@
-var config = require('../config/DBConnection'); 
 var mysql  = require('mysql')
 var moment    = require('moment')
 var constants = require('../utils/Constants');
