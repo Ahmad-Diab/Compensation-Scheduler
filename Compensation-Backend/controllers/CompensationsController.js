@@ -103,8 +103,10 @@ module.exports =
                 availableDates.push(daysInWeek[i]);
         }
 
-        // solve_all_slots(Slots , Days_Off, FreeSlots , Preferable , NonPreferable).
+        // Slots is meetings_ids, type
+        // solve_all_slots(Slots , Days_Off, FreeSlots, FreeLargeHalls, FreeSmallHalls, FreeRooms, FreeLabs, Preferable , NonPreferable).
 
+        var meetingsWithRoomType = [];
         // GET STUDENTS DAYS OFF
         var studentsByMeetingDaysOff = [];
         // GET STUDENTS FREE SLOTS
@@ -116,6 +118,12 @@ module.exports =
             var getMeetingQuery = "SELECT * FROM Course_Meetings WHERE id = " + meetingsToBeCompensated[i];
             var courseMeeting = await query(getMeetingQuery);
 
+            // Get Meeting along With Type
+            var getRoomTypeQuery = "SELECT * FROM Rooms WHERE id = " + courseMeeting.room_id;
+            var roomType = await query(getRoomTypeQuery);
+            meetingsWithRoomType.push([meetingsToBeCompensated[i], roomType[0].room_type]);
+
+            // GET DAYS OFF HERE
             var daysOffQuery = null;
             if(courseMeeting.tutorial_group_id == null)
                 daysOffQuery = "SELECT DISTINCT day FROM Tutorial_Groups_Holidays WHERE lecture_group_id = " + courseMeeting.lecture_group_id;
@@ -128,10 +136,66 @@ module.exports =
                     meetingDaysOff.push(helpers.getDayIdx(daysOff[j].day));
 
             // ADD FREE SLOTS HERE
+            var occupiedSlotsQuery = null;
+            if(courseMeeting.tutorial_group_id == null)
+                occupiedSlotsQuery = "SELECT * FROM Course_Meetings WHERE lecture_group_id = " + courseMeeting.lecture_group_id;
+            else
+                occupiedSlotsQuery = "SELECT * FROM Course_Meetings WHERE tutorial_group_id = " + courseMeeting.tutorial_group_id;
 
+            var occupiedSlots = await query(occupiedSlotsQuery);
+            var notEmptySlots = new Set();
+            for(var j = 0; j < occupiedSlots.length; j++)
+                if(occupiedSlots[j].day != holidayDay)
+                    notEmptySlots.add(helpers.getNumberOfPreviousSlots(occupiedSlots[j].day) + occupiedSlots[j].slot);
+
+            var freeSlots = [];
+            for(var j = 1; j <= 30; j++)
+                if(!notEmptySlots.has(j) && helpers.fromSlotToDay(j) != holidayDay)
+                    freeSlots.push(j);
+            
             studentsByMeetingDaysOff.push(meetingDaysOff);
+            studentsByMeetingFreeSlots.push(freeSlots)
+        }
+
+        // Find Empty Rooms at Each Slot
+        var emptyRooms = [];
+        var emptyLabs = [];
+        var emptyLargeHalls = [];
+        var emptySmallHalls = [];
+        for(var i = 1; i <= 6; i++)
+        {
+            var day = helpers.fromIdxToDay(i);
+            for(var j = 1; j <= 5; j++)
+            {
+                var findEmptyRoomsQuery = "SELECT * FROM Rooms WHERE type = 'Room' AND id NOT IN (SELECT room_id FROM Course_Meetings WHERE day = '"
+                                         + day + "'AND slot = " + j + " )";
+                var findEmptyLargeHallsQuery = "SELECT * FROM Rooms WHERE type = 'LargeHall' AND id NOT IN (SELECT room_id FROM Course_Meetings WHERE day = '"
+                                         + day + "'AND slot = " + j + " )";
+                var findEmptySmallHallsQuery = "SELECT * FROM Rooms WHERE type = 'SmallHall' AND id NOT IN (SELECT room_id FROM Course_Meetings WHERE day = '"
+                                         + day + "'AND slot = " + j + " )";
+                var findEmptyLabsQuery = "SELECT * FROM Rooms WHERE type = 'Lab' AND id NOT IN (SELECT room_id FROM Course_Meetings WHERE day = '"
+                                         + day + "'AND slot = " + j + " )";
+                
+                var findEmptyRooms = await query(findEmptyRoomsQuery);
+                var findEmptyLargeHalls = await query(findEmptyLargeHallsQuery);
+                var findEmptySmallHalls = await query(findEmptySmallHallsQuery);
+                var findEmptyLabs = await query(findEmptyLabsQuery);
+
+                for(var c = 0; c < findEmptyRooms.length; c++)
+                    emptyRooms.push(findEmptyRooms[c].id);
+                
+                for(var c = 0; c < findEmptyLabs.length; c++)
+                    emptyLabs.push(findEmptyLabs[c].id);
+
+                for(var c = 0; c < findEmptyLargeHalls.length; c++)
+                    emptyLargeHalls.push(findEmptyLargeHalls[c].id);
+                
+                for(var c = 0; c < findEmptySmallHalls.length; c++)
+                    emptySmallHalls.push(findEmptySmallHalls[c].id);
+            }
         }
 
 
+        // CALL PROLOG PREDICATE HERE
     }
 }
