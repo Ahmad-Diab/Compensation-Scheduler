@@ -52,7 +52,9 @@ class Compensations(APIView):
                 tutorials = []
                 if(meeting.slot_type == CourseMeeting.LECTURE):
                     # In case of lecture get all it's corresponding tutorials
-                    tutorials = list(TutorialGroup.objects.filter(lecture_group=meeting.lecture_group.pk).only())
+                    for lecture in list(meeting.lecture_group.all()):
+                        for tut in list(TutorialGroup.objects.filter(lecture_group=lecture.pk).only()):
+                            tutorials.append(tut)
 
                     # Replace Tutorial object with its primary key & get tutorial group holidays
                     i = 0
@@ -83,7 +85,7 @@ class Compensations(APIView):
                     room_type = 3
 
                 # (StaffID , Semester , Course , Tutorials (List) , RoomType (0, 3) , DaysOff (List of daysoff), RoomSlot (HashFunction))
-                staff_member_group_tuple = (meeting.staff_member.pk, meeting.lecture_group.semester, meeting.course.pk, tutorials, room_type, list(holidays_set), count)# Last attribute Should be a Var
+                staff_member_group_tuple = (meeting.staff_member.pk, 5, meeting.course.pk, tutorials, room_type, list(holidays_set), count)# Last attribute Should be a Var
                 compensations.append(staff_member_group_tuple)
                 count += 1
                 # days_off.append( (staff_member_group_tuple, list(holidays_set)))
@@ -148,8 +150,11 @@ class Compensations(APIView):
 
                 tutorials = []
                 if(meeting.slot_type == CourseMeeting.LECTURE):
+                    # print(meeting.lecture_group)
                     # In case of lecture get all it's corresponding tutorials
-                    tutorials = list(TutorialGroup.objects.filter(lecture_group=meeting.lecture_group.pk).only())
+                    for lecture in list(meeting.lecture_group.all()):
+                        for tut in list(TutorialGroup.objects.filter(lecture_group=lecture.pk).only()):
+                            tutorials.append(tut)
                     # Replace Tutorial object with its primary key
                     i = 0
                     while(i < len(tutorials)):
@@ -179,7 +184,7 @@ class Compensations(APIView):
                     room_type = 3
                 
                 # (StaffID , Semester , Course , Tutorials (List) , RoomType (0, 3) , DaysOff (List of daysoff), RoomSlot (HashFunction))
-                original_slots_tuple = (meeting.staff_member.pk, meeting.lecture_group.semester, meeting.course.pk, tutorials, room_type, list(holidays_set), calculate_room_slot_hash(meeting.room.pk, meeting.room.room_type, meeting.day.pk - 1, meeting.slot - 1))
+                original_slots_tuple = (meeting.staff_member.pk, 5, meeting.course.pk, tutorials, room_type, list(holidays_set), calculate_room_slot_hash(meeting.room.pk, meeting.room.room_type, meeting.day.pk - 1, meeting.slot - 1))
                 original_slots.append(original_slots_tuple)
 
             print(original_slots)
@@ -207,7 +212,7 @@ class Compensations(APIView):
             print()
             # prolog.consult("/Users/omaremad/Desktop/CompensationSystemProject/Compensation-System/compensation_backend/compensationapp/PopQuiz.pl")
             # print(list(prolog.query("which_house(A, B, C, D)")))
-            prolog.consult("/Users/omaremad/Desktop/CompensationSystemProject/Compensation-System/compensation_backend/compensationapp/ProjectCLPFD-3.pl")
+            prolog.consult("/Users/omaremad/Desktop/CompensationSystemProject/Compensation-System/compensation_backend/compensationapp/compensation_scheduler.pl")
             print(list(prolog.query(final_query)))
             print()
             
@@ -340,4 +345,14 @@ def stringify_compensations_original(compensations, originals):
 
 
 
-        
+# calculate_preferable([] , Preferable , 0).
+# calculate_preferable([(StaffID , _ , _ , _ , _ ,_,RoomSlot) | T] , Preferable, Score):-
+# 	Slot #= RoomSlot mod 30 , 
+# 	Hash #= StaffID * 200 + Slot , 
+# 	calculate_preferable(T , Preferable , Score1),
+# 	(( element(_,Preferable , Hash), Score #= Score1 + 1 ) ;  \+ element(_,Preferable , Hash)).
+    
+# calculate_days_off([(_ , _ , _ , _ , _ ,DaysOFF,RoomSlot) | T] , Score):- 
+# 		Day #= (RoomSlot // 5)  mod 6, 
+# 		calculate_days_off(T , Score1) , 
+# 		((element(_ ,DaysOFF , Day) , Score #= Score1 + 4) ; \+ element(_ ,DaysOFF , Day)). 
