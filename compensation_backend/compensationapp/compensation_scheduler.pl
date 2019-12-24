@@ -78,7 +78,7 @@ get_hash_group_slot(Schedules , GroupSlotHash):-
 	bagof(Hash , StaffID^Semester ^ Course^ Tutorials^ RoomType^ RoomSlot^Tutorial^Hash^Slot^DaysOFF^(member((StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF, RoomSlot) , Schedules) , member(Tutorial , Tutorials), Slot #= RoomSlot mod 30 , Hash #= Semester * 8 * 20 * 30 + Course * 20 * 30 + Tutorial * 30 + Slot) , GroupSlotHash).
 		
 get_hash_staff_slot(Schedules , StaffSlotHash):- 
-	bagof(Hash , StaffID^Semester ^ Course^ Tutorials^ RoomType^ DaysOFF^ RoomSlot^Tutorial^Hash^Slot^(member((StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF, RoomSlot), Schedules), Slot #= RoomSlot mod 30 , Hash #= StaffID * 200 + Slot) , StaffSlotHash).
+	bagof(Hash , StaffID^Semester ^ Course^ Tutorials^ RoomType^ DaysOFF^ RoomSlot^Tutorial^Hash^Slot^(member((StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF, RoomSlot), Schedules), Slot #= RoomSlot mod 30 , Hash #= StaffID * 30 + Slot) , StaffSlotHash).
 		
 same_RoomType_compare(RoomSlot , RoomType , B):- Z #= (RoomSlot // 30) mod 4 , Z #= RoomType #<==> B.	
 
