@@ -78,9 +78,12 @@ get_RoomType([(StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF,RoomS
 	get_RoomType(T , L).
 
 get_hash_group_slot([] , []).	
-get_hash_group_slot([(StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF,RoomSlot ) | T] , [Hash | L]):-
-		Slot #= RoomSlot mod 30 , Hash #= Semester * 8 * 20 * 30 + Course * 20 * 30 + Tutorial * 30 + Slot,
-		get_hash_group_slot(T , L).
+get_hash_group_slot([(StaffID , Semester , Course , [] , RoomType ,DaysOFF,RoomSlot ) | T] ,L):-
+	get_hash_group_slot(T , L).
+get_hash_group_slot([(StaffID , Semester , Course , [Tutorial|Tutorials] , RoomType ,DaysOFF,RoomSlot ) | T] ,[Hash | L]):-
+		Slot #= RoomSlot mod 30 , Hash #= Semester  * 20 * 30  + Tutorial * 30 + Slot,
+		get_hash_group_slot([(StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF,RoomSlot ) | T] ,L).
+		
 get_hash_staff_slot([] , []).	
 get_hash_staff_slot([(StaffID , Semester , Course , Tutorials , RoomType ,DaysOFF,RoomSlot ) | T] , [Hash | L]):-
 	Slot #= RoomSlot mod 30 , Hash #= StaffID * 30 + Slot,
