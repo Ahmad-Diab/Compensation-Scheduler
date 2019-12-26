@@ -156,7 +156,7 @@ class CourseMeeting(models.Model):
     is_first_year = models.BooleanField()
 
     def __str__(self):
-        return str(self.course) + " " + str(self.lecture_group.__str__())
+        return str(self.course) + " / " + str(self.staff_member.__str__())
 
 class Compensation(models.Model):
     
