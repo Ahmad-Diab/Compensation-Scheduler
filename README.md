@@ -17,6 +17,7 @@ In order to get the project up and running we need to install swi-prolog & djang
 > - **Windows :** In the command line and run this command ``pip install django``
 
 ## Install PySwip
-> - **macOS :** Open a new terminal window and run this command ``pip3 install pyswip`` followed by these commands ``export PATH=$PATH:/Applications/SWI-Prolog.app/Contents/swipl/bin/x86_64-darwin15.6.0 
-`` and ``export DYLD_FALLBACK_LIBRARY_PATH=/Applications/SWI-Prolog.app/Contents/swipl/lib/x86_64-darwin15.6.0``
+> - **macOS :** Open a new terminal window and run this command ``pip3 install pyswip`` followed by these commands
+> > - ``export PATH=$PATH:/Applications/SWI-Prolog.app/Contents/swipl/bin/x86_64-darwin15.6.0 ``
+> > - ``export DYLD_FALLBACK_LIBRARY_PATH=/Applications/SWI-Prolog.app/Contents/swipl/lib/x86_64-darwin15.6.0``
 > - **Windows :** In the command line and run this command ``pip install pyswip``
