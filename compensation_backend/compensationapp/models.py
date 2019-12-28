@@ -145,7 +145,7 @@ class CourseMeeting(models.Model):
     staff_member = models.ForeignKey(StaffMember, on_delete=models.CASCADE)
     day = models.ForeignKey(WeekDay, on_delete=models.CASCADE)
     slot = models.PositiveIntegerField(choices=SLOT_CHOICES)
-    lecture_group = models.ForeignKey(LectureGroup, on_delete=models.CASCADE)
+    lecture_group = models.ManyToManyField(LectureGroup)
     tutorial_group = models.ForeignKey(TutorialGroup, on_delete=models.CASCADE, null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     slot_type = models.PositiveIntegerField(choices=SLOT_TYPE_CHOICES)
@@ -156,7 +156,7 @@ class CourseMeeting(models.Model):
     is_first_year = models.BooleanField()
 
     def __str__(self):
-        return str(self.course) + " " + str(self.lecture_group.__str__())
+        return str(self.course) + " / " + str(self.staff_member.__str__())
 
 class Compensation(models.Model):
     
